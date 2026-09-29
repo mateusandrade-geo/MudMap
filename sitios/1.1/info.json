@@ -1,0 +1,17 @@
+{
+  "sitio": "1.1",
+  "pasta_dados": "EDS/1/1.1",
+  "data_arquivo": "2026-09-29",
+  "px_total": 408858,
+  "por_mineral": {
+    "quartzo": 31293,
+    "sulfato_ca": 65048,
+    "pirita": 365,
+    "oxido_ti": 1498,
+    "oxido_fe": 28062,
+    "biotita": 54981,
+    "feldspato": 22083,
+    "clorita": 205528
+  },
+  "origem": "reconstruído de amostras/RJS0649RJ_1.1.mudmap (rotulos, clusters e config do pacote)"
+}
