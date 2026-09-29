@@ -1,0 +1,166 @@
+{
+  "conjunto": "EDS/1/1.2",
+  "sem_classe_pct": 27.3,
+  "candidatos": [
+    {
+      "nome": "biotita",
+      "cor": "#3f7f5f",
+      "feldspato": false,
+      "fonte": "cluster",
+      "pct_area": 18.2,
+      "n_graos": 294,
+      "n_pixels": 123156,
+      "area_um2": 365.1,
+      "clusters": [
+        3
+      ],
+      "composicao_media": {
+        "Si": 0.166,
+        "Al": 0.117,
+        "Fe": 0.147,
+        "Mg": 0.102,
+        "K": 0.117,
+        "Ca": 0.117,
+        "Ti": 0.128,
+        "S": 0.106
+      }
+    },
+    {
+      "nome": "sulfato_ca",
+      "cor": "#f2e6a8",
+      "feldspato": false,
+      "fonte": "cluster",
+      "pct_area": 12.9,
+      "n_graos": 939,
+      "n_pixels": 87594,
+      "area_um2": 259.7,
+      "clusters": [
+        6,
+        7
+      ],
+      "composicao_media": {
+        "Si": 0.067,
+        "Al": 0.06,
+        "Fe": 0.12,
+        "Mg": 0.064,
+        "K": 0.087,
+        "Ca": 0.241,
+        "Ti": 0.132,
+        "S": 0.229
+      }
+    },
+    {
+      "nome": "anquerita",
+      "cor": "#d2a679",
+      "feldspato": false,
+      "fonte": "cluster",
+      "pct_area": 6.5,
+      "n_graos": 530,
+      "n_pixels": 44190,
+      "area_um2": 131.0,
+      "clusters": [
+        4
+      ],
+      "composicao_media": {
+        "Si": 0.081,
+        "Al": 0.072,
+        "Fe": 0.139,
+        "Mg": 0.078,
+        "K": 0.094,
+        "Ca": 0.229,
+        "Ti": 0.142,
+        "S": 0.165
+      }
+    },
+    {
+      "nome": "quartzo",
+      "cor": "#d9d9d9",
+      "feldspato": false,
+      "fonte": "cluster",
+      "pct_area": 4.6,
+      "n_graos": 208,
+      "n_pixels": 31106,
+      "area_um2": 92.2,
+      "clusters": [
+        2,
+        5,
+        8
+      ],
+      "composicao_media": {
+        "Si": 0.285,
+        "Al": 0.143,
+        "Fe": 0.09,
+        "Mg": 0.084,
+        "K": 0.102,
+        "Ca": 0.104,
+        "Ti": 0.083,
+        "S": 0.108
+      }
+    },
+    {
+      "nome": "oxido_ti",
+      "cor": "#5a4b6b",
+      "feldspato": false,
+      "fonte": "mapa",
+      "pct_area": 0.1,
+      "n_graos": 9,
+      "n_pixels": 408,
+      "area_um2": 1.2,
+      "clusters": [],
+      "composicao_media": {
+        "Si": 0.117,
+        "Al": 0.115,
+        "Fe": 0.144,
+        "Mg": 0.106,
+        "K": 0.11,
+        "Ca": 0.068,
+        "Ti": 0.288,
+        "S": 0.052
+      }
+    },
+    {
+      "nome": "oxido_fe",
+      "cor": "#9c3b2e",
+      "feldspato": false,
+      "fonte": "cluster",
+      "pct_area": 0.0,
+      "n_graos": 1,
+      "n_pixels": 70,
+      "area_um2": 0.2,
+      "clusters": [
+        9
+      ],
+      "composicao_media": {
+        "Si": 0.149,
+        "Al": 0.111,
+        "Fe": 0.204,
+        "Mg": 0.099,
+        "K": 0.112,
+        "Ca": 0.149,
+        "Ti": 0.07,
+        "S": 0.106
+      }
+    },
+    {
+      "nome": "pirita",
+      "cor": "#c9a227",
+      "feldspato": false,
+      "fonte": "mapa",
+      "pct_area": 0.0,
+      "n_graos": 0,
+      "n_pixels": 0,
+      "area_um2": 0.0,
+      "clusters": [],
+      "composicao_media": {
+        "Si": 0.0,
+        "Al": 0.0,
+        "Fe": 0.0,
+        "Mg": 0.0,
+        "K": 0.0,
+        "Ca": 0.0,
+        "Ti": 0.0,
+        "S": 0.0
+      }
+    }
+  ]
+}
