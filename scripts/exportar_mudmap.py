@@ -4,13 +4,15 @@ Sem --sitio exporta o sítio ATIVO (config + estado/). Com --sitio <s> usa o sí
 arquivado em sitios/<s>/ (se <s> for o ativo, o estado/ tem prioridade).
 
 Uso: PYTHONPATH=scripts python scripts/exportar_mudmap.py [--sitio 1.1] [--todos] [--saida <arq>]
+O projeto é a pasta atual (se tiver config/classificacao.yaml), senão a raiz do repositório.
 """
 import argparse
 import sys
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(RAIZ / "app"))
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "app"))
+RAIZ = Path.cwd() if (Path.cwd() / "config" / "classificacao.yaml").exists() else REPO
 
 from mudmap_studio.nucleo import importar, pacote  # noqa: E402
 

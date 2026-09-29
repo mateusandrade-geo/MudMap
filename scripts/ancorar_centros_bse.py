@@ -23,7 +23,9 @@ exemplo, o diagrama ternario de feldspatos).
 Entradas esperadas (caminhos ajustaveis por argumento)
 ------------------------------------------------------
   estado/rotulos.npy     mapa de rotulos inteiro (H_eds x W_eds). Aceita tambem .tif/.png.
-  data/bse.tif           imagem BSE/SE do mesmo campo (grayscale ou RGB).
+  <bse da config>        imagem BSE/SE do mesmo campo (grayscale ou RGB); default = chave `bse`
+                         de config/classificacao.yaml (TIFF do AZtec: a barra de informacao de
+                         baixo e recortada pelos metadados, como nos mapas).
   estado/progresso.json  (opcional) mapeia id -> nome do mineral. Formatos aceitos:
                            {"1": "quartzo", "2": "clorita"}
                            ou  [{"id": 1, "mineral": "quartzo"}, ...]
@@ -37,15 +39,15 @@ Saidas
 Uso rapido
 ----------
   # ver funcionando sem dado nenhum (gera exemplo sintetico):
-  python ancorar_centros_bse.py --demo
+  python scripts/ancorar_centros_bse.py --demo
 
-  # uso real:
-  python ancorar_centros_bse.py \
-      --rotulos estado/rotulos.npy \
-      --bse data/bse.tif \
-      --nomes estado/progresso.json
+  # uso real (na raiz do projeto; BSE, rotulos e nomes vem do sitio ativo):
+  python scripts/ancorar_centros_bse.py
+  # ou explicito:
+  python scripts/ancorar_centros_bse.py --rotulos estado/rotulos.npy \
+      --bse "EDS/1/1.2/Electron Image 2.tif" --nomes estado/progresso.json
 
-Requisitos: veja requirements.txt (numpy, scipy, pandas, imageio, tifffile, napari[all]).
+Requisitos: requirements-napari.txt (napari[all], imageio, tifffile + o requirements.txt).
 
 IMPORTANTE sobre alinhamento
 ----------------------------
@@ -89,11 +91,30 @@ def carregar_rotulos(caminho: Path) -> np.ndarray:
 
 
 def carregar_bse(caminho: Path):
-    """Le a imagem BSE/SE. Retorna (array, eh_rgb)."""
-    import imageio.v3 as iio
-    img = iio.imread(caminho)
+    """Le a imagem BSE/SE. Retorna (array, eh_rgb). TIFF do AZtec: recorta a barra de
+    informacao de baixo pelos metadados (mesma regra dos mapas, common._altura_mapa)."""
+    from PIL import Image                 # Pillow le o TIFF LZW do AZtec (tifffile exigiria imagecodecs)
+    im = Image.open(caminho)
+    img = np.array(im)
+    try:
+        from common import _altura_mapa
+        h = _altura_mapa(im, img)
+        if 0 < h < img.shape[0]:
+            img = img[:h]
+    except Exception:
+        pass
     eh_rgb = img.ndim == 3 and img.shape[-1] in (3, 4)
     return img, eh_rgb
+
+
+def bse_da_config(config: Path = Path("config/classificacao.yaml")) -> Path | None:
+    """Caminho da BSE do sitio ativo (chave `bse` da config), se houver."""
+    try:
+        import yaml
+        cfg = yaml.safe_load(config.read_text(encoding="utf-8"))
+        return Path(cfg["bse"]) if cfg.get("bse") else None
+    except Exception:
+        return None
 
 
 def carregar_nomes(caminho: Path | None, ids_presentes: np.ndarray) -> dict[int, str]:
@@ -198,7 +219,8 @@ def gerar_demo():
 def main() -> int:
     ap = argparse.ArgumentParser(description="Ancorar centros das regioes segmentadas na imagem BSE/SE (napari).")
     ap.add_argument("--rotulos", type=Path, default=Path("estado/rotulos.npy"))
-    ap.add_argument("--bse", type=Path, default=Path("data/bse.tif"))
+    ap.add_argument("--bse", type=Path, default=None,
+                    help="imagem BSE/SE (default: chave 'bse' de config/classificacao.yaml)")
     ap.add_argument("--nomes", type=Path, default=Path("estado/progresso.json"))
     ap.add_argument("--afim", type=Path, default=None,
                     help="JSON com matriz afim 3x3 (row,col) EDS->BSE; substitui o reescalonamento.")
@@ -217,6 +239,7 @@ def main() -> int:
                   f"       Rode a segmentacao antes, ou use --demo para ver a interface.",
                   file=sys.stderr)
             return 1
+        args.bse = args.bse or bse_da_config() or Path("data/bse.tif")
         if not args.bse.exists():
             print(f"[ERRO] Nao encontrei a imagem BSE/SE: {args.bse}", file=sys.stderr)
             return 1

@@ -215,6 +215,8 @@ def main():
     novo = outros.copy()
     novo[final_mask & (novo == 0)] = ident                     # não sobrescreve outros minerais
     rotulos = novo
+    if ROT.exists():                                           # backup p/ "desfazer" (1 passo)
+        np.save(EST / "rotulos_prev.npy", np.load(ROT))
     np.save(ROT, rotulos)
 
     prog = json.loads(PROG.read_text(encoding="utf-8")) if PROG.exists() else []

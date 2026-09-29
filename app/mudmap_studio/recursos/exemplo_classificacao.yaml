@@ -1,0 +1,179 @@
+# Config de classificação do EXEMPLO SINTÉTICO do MudMap (gerado por
+# app/mudmap_studio/nucleo/exemplo.py — não é uma amostra real).
+# As REGRAS dos minerais (bloco "minerais") são uma cópia das regras calibradas da amostra
+# RJS0649RJ (config/classificacao.yaml da raiz do projeto); só o cabeçalho muda.
+# Vetores em fração de "cátions" (intensidade por elemento, normalizada por pixel); O e C NÃO entram.
+# As condições de um mineral são TODAS exigidas (E lógico).
+# A ORDEM = prioridade: segmenta-se do topo para baixo (mais distinto -> mais ambíguo).
+# Tamanhos em µm (d_min_um, suavizar_um, forma.close_um/d_min_um) viram px pelo pixel_um do sítio.
+
+amostra: "EXEMPLO"           # nome da amostra (usado pelo MudMap Studio / pacote .mudmap)
+elementos: [Si, Al, Fe, Mg, K, Ca, Na, Ti, S]
+sitio: "demo"                # id do sítio ativo
+pasta_dados: "EDS/demo"      # relativo à raiz do projeto
+bse: "EDS/demo/Electron Image 1.tif"
+pixel_um: auto               # lê <PixelWidth_um> do TIFF (0,1 µm/px no exemplo)
+d_min_um: 0.67               # menor grão: diâmetro equivalente (µm)
+corte_fundo: null            # limiar da soma p/ separar amostra do epóxi; null = Otsu
+
+minerais:
+  - nome: quartzo
+    cor: "#d9d9d9"
+    # CALIBRADO (2026-09-19) contra o DESENHO do operador (seg_seed_quartzo, pontos->fecho
+    # convexo): quartzo=SiO2 PURO (Al/K baixos) vs matriz argilosa (Si+Al+K). Modelo POR
+    # REGIÃO (fração suavizada r=15) + FECHO CONVEXO por grão (casa com o traçado convexo do
+    # operador). vs desenho: Dice 0.81, IoU 0.69, prec 0.85 — acha TODOS os grãos. Si_frac
+    # isolado empaca em ~0.78 (as bordas do polígono não têm assinatura de quartzo puro).
+    # rotulos.npy mantém o DESENHO (maior fidelidade); este é o modelo REPRODUZÍVEL.
+    fonte_default: mapa
+    suavizar_um: 1.63
+    mapas_grupos:
+      - nome: puro
+        suavizar_um: 1.63
+        cond:
+          - { canal: Si, tipo: frac, op: ">", v: 0.40 }   # Si dominante
+          - { canal: Al, tipo: frac, op: "<", v: 0.10 }   # pureza: pouca argila
+          - { canal: K,  tipo: frac, op: "<", v: 0.10 }
+    forma: { convex: true, d_min_um: 0.67 }
+    condicoes: { Si: ">0.30" }   # filtro de sanidade (não usado por mapa)
+
+  - nome: sulfato_ca          # gipsita / anidrita
+    cor: "#f2e6a8"
+    # CALIBRADO (2026-09-16): cimento DISSEMINADO (grão mediano ~1 px; 67% da área <area_min).
+    # A FRAÇÃO Ca&S reproduz o disseminado; o Ca∩S BRUTO (otsu) dá só ~183 px. disseminado:true
+    # faz o segmentar NÃO aplicar area_min (a limpeza apagaria o cimento). Grão vs cimento é
+    # separado depois no relatorio_final (só ≥area_min = grão).
+    disseminado: true
+    fonte_default: regra
+    mapas_seg: [Ca, S]        # mantido p/ candidatos; segmentação real usa a fração (condicoes)
+    condicoes: { Ca: ">0.12", S: ">0.12" }
+
+  - nome: pirita              # FeS2 (antes 'sulfeto'); id 3
+    cor: "#c9a227"
+    # CALIBRADO (2026-09-19) contra o grão do napari: regra por FRAÇÃO S∩Fe altos, Ca/Si baixos,
+    # mantendo o MAIOR componente + PREENCHER buracos (pirita = 1 grão SÓLIDO neste sítio).
+    # DECISÃO do usuário (2026-09-19): usar o GRÃO INTEIRO (footprint sólido do sinal Fe∩S,
+    # ~365 px) em vez do núcleo apertado (272 px) — commitado em rotulos.npy id 3.
+    fonte_default: regra
+    mapas_seg: [Fe, S]        # mantido p/ candidatos/referência (pirita = FeS2)
+    condicoes: { S: ">0.20", Fe: ">0.18", Ca: "<0.15", Si: "<0.15" }
+    forma: { close_um: 0.11, maior: true, preencher: true }
+
+  - nome: titanita            # CaTiSiO5 — Ti COM Si e Ca (acima do óxido-Ti puro)
+    cor: "#8c6b3f"
+    condicoes: { Ti: ">0.12", Ca: ">0.10", Si: ">0.10", S: "<0.10" }
+
+  - nome: oxido_ti            # rutilo/anatásio — TiO2 (só O e Ti; NÃO confirmar por Fe/outros)
+    cor: "#5a4b6b"
+    # CALIBRADO com o operador (2026-09-16): Ti BRUTO é ruído (70k specks); a FRAÇÃO de Ti isola
+    # o grão. Exige o resgate por Ti em mascara_amostra (31% do grão caía fora: TiO2 tem soma baixa).
+    # Ti_frac>0.18: IoU 0.60, prec 0.77, recall 0.72 vs o desenho do operador (1 grão).
+    fonte_default: regra      # usa a FRAÇÃO de Ti (condicoes); mapa bruto de Ti inunda de ruído
+    mapas_seg: [Ti]           # mantido p/ referência/candidatos; a titanita (acima) retira Ti+Si+Ca
+    mapas_limiar: quantil
+    mapas_q: 0.85
+    condicoes: { Ti: ">0.18" }  # SÓ Ti
+
+  - nome: oxido_fe            # hematita/magnetita FINA, arredondada, intercrescida c/ sílica
+    cor: "#9c3b2e"
+    # CALIBRADO com a segmentação do operador (2026-09-16, comparar/exp): a FRAÇÃO de Fe
+    # reproduz os grãos (IoU 0.49; Fe BRUTO inunda 1/4 da imagem, Fe_frac>0.35 zera após limpar).
+    # Exige o resgate por Fe em mascara_amostra (58% dos grãos caíam fora da amostra: baixa soma).
+    # Exclusões de Si/Al etc. sobem a precisão mas derrubam o recall (bordas dos grãos têm sílica).
+    fonte_default: regra
+    condicoes: { Fe: ">0.20" }
+
+  - nome: anquerita           # Ca(Fe,Mg)(CO3)2 — carbonato de Fe/Mg (acima da calcita)
+    cor: "#d2a679"
+    mapas_seg: [Ca, Fe]       # segmenta por mapa (Ca∩Fe); independe do cluster
+    mapas_limiar: quantil
+    mapas_q: 0.5
+    condicoes: { Ca: ">0.15", Fe: ">0.12", Mg: ">0.06", Si: "<0.12", S: "<0.12", Al: "<0.12" }
+
+  - nome: carbonato_ca        # calcita — CaCO3 (carbonato de cálcio)
+    cor: "#bfe3d0"
+    condicoes: { Ca: ">0.22", Si: "<0.12", S: "<0.12", Al: "<0.10" }
+
+  - nome: biotita             # fração Mg-rica do groundmass (lâminas alongadas); ver nota
+    cor: "#3f7f5f"
+    matriz: true              # matriz contínua: não é grão; relatório soma na ARGILA (decisão 2026-09-28)
+    # CALIBRADO (2026-09-18): as lâminas do operador NÃO têm química de biotita Fe-Mg
+    # (Fe/Mg em FRAÇÃO ficam abaixo do fundo pois o Si domina); no mapa BRUTO o Mg emerge.
+    # A convergência por pixel dava IoU 0. Modelo POR REGIÃO (como feldspato): Mg∩Al∩Si
+    # suavizados altos + Ca/S/Ti baixos, e pós-filtro de FORMA (lâminas alongadas). vs o
+    # desenho do operador (mapa de Mg): IoU 0.43, prec 0.67, rec 0.55 (teto físico — 6
+    # famílias de métodos, incl. LDA e fusão BSE, convergiram ~0.43; as bordas do polígono
+    # do operador não têm assinatura EDS/BSE distinta da matriz). rotulos.npy mantém o
+    # desenho manual do operador (72.895 px, maior fidelidade); este é o modelo REPRODUZÍVEL.
+    fonte_default: mapa       # candidato = mapas_grupos (por região, suavizado) + forma
+    suavizar_um: 2.94
+    mapas_grupos:
+      - nome: laminas_mg
+        suavizar_um: 2.94
+        cond:
+          - { canal: Mg, tipo: raw, op: ">", q: 0.70 }
+          - { canal: Al, tipo: raw, op: ">", q: 0.55 }
+          - { canal: Si, tipo: raw, op: ">", q: 0.35 }
+          - { canal: Ca, tipo: raw, op: "<", q: 0.70 }
+          - { canal: S,  tipo: raw, op: "<", q: 0.70 }
+          - { canal: Ti, tipo: raw, op: "<", q: 0.70 }
+    forma: { close_um: 0.33, d_min_um: 2.748, ecc_min: 0.92 }   # lâminas alongadas (remove blobs)
+    condicoes: { Mg: ">0.02", Si: ">0.08", S: "<0.10" }  # filtro de sanidade frouxo (não usado por mapa)
+
+  - nome: ilita               # argila: K moderado
+    cor: "#9db85c"
+    condicoes: { Al: ">0.15", Si: ">0.12", K: "0.08 - 0.20", Mg: "<0.20", S: "<0.08" }
+
+  - nome: esmectita           # argila: K muito baixo
+    cor: "#6b9de8"
+    condicoes: { Al: ">0.15", Si: ">0.12", K: "<0.08", Mg: "<0.22", Ca: "<0.15", S: "<0.08" }
+
+  - nome: feldspato           # detrítico; Na/K/Ca resolvido por ternário Ca-Na-K POR OBJETO
+    feldspato: true
+    cor: "#e8846b"
+    # MODELO POR REGIÃO, DOIS SUB-MODELOS INDEPENDENTES (calibrado 2026-09-17):
+    # no nível de pixel Al/Si/K/Na NÃO co-ocorrem, então cada condição usa o mapa SUAVIZADO
+    # (média mascarada na escala do grão). O candidato = UNIÃO dos grupos (fonte=mapa).
+    #  - potássico: Al∩K altos (K-feldspato).
+    #  - sódico:    Al+Si altos, K baixo, fração de Na elevada (albita).
+    # Depois cada objeto é classificado no ternário Na-K-Ca pela sua MÉDIA. condicoes = filtro
+    # de sanidade da MÉDIA do objeto (não por pixel). Limiares = quantil na amostra.
+    fonte_default: mapa      # candidato = união dos mapas_grupos (por região, suavizado)
+    suavizar_um: 1.63         # raio default da suavização mascarada
+    mapas_grupos:
+      - nome: potassico
+        suavizar_um: 2.29
+        cond:
+          - { canal: Al, tipo: raw,  op: ">", q: 0.95 }
+          - { canal: K,  tipo: raw,  op: ">", q: 0.95 }
+      - nome: sodico
+        suavizar_um: 1.63
+        cond:
+          - { canal: Al, tipo: raw,  op: ">", q: 0.85 }
+          - { canal: Si, tipo: raw,  op: ">", q: 0.80 }
+          - { canal: K,  tipo: raw,  op: "<", q: 0.50 }
+          # Na FORA no 1.2 (mapa ausente): critério de Na_frac removido; sódico = Al+Si altos, K baixo
+    condicoes: { Si: ">0.12", Al: ">0.08", S: "<0.10", Mg: "<0.12", Fe: "<0.18" }
+
+  - nome: clorita             # id 13; filossilicato Fe-Mg da MATRIZ; distinção de biotita por Mg/Si
+    cor: "#2f6b57"
+    # REGRA derivada da BIOTITA pelo contraste Mg/Si (2026-09-19). Assinaturas quase idênticas;
+    # diferem só em Mg (biotita ALTA, mediana frac 0.117 vs clorita 0.093) e Si (clorita ALTA,
+    # 0.276 vs 0.251). A regra é a MESMA família da biotita (raw suavizado r=27), mas INVERTE o Mg
+    # (<q0.70 em vez de >q0.70) e exige Si alto (>q0.60), + reforço Si-Mg (frac suav) > 0.15.
+    # SEM forma (clorita = fundo contínuo, não lâmina). vs clorita commitada (Mahalanobis): Dice 0.75,
+    # overlap biotita 1.9%, grão 0%. Biotita e clorita PARTICIONAM a matriz pela fronteira de Mg.
+    fonte_default: mapa
+    suavizar_um: 2.94
+    mapas_grupos:
+      - nome: matriz_si
+        suavizar_um: 2.94
+        cond:
+          - { canal: Si, tipo: raw,  op: ">", q: 0.60 }   # clorita = Si ALTO (biotita era q0.35)
+          - { canal: Al, tipo: raw,  op: ">", q: 0.50 }   # mesma matriz da biotita
+          - { canal: Mg, tipo: raw,  op: "<", q: 0.70 }   # INVERTE a biotita: clorita = Mg BAIXO
+          - { canal: Ca, tipo: raw,  op: "<", q: 0.75 }
+          - { canal: S,  tipo: raw,  op: "<", q: 0.75 }
+          - { canal: Ti, tipo: raw,  op: "<", q: 0.75 }
+          - { canal: "Si-Mg", tipo: frac, op: ">", v: 0.15 }  # reforço: Si domina Mg (bio 0.13 < clo 0.18)
+    condicoes: { Mg: ">0.02", Si: ">0.08", S: "<0.10" }   # filtro de sanidade (não usado por mapa)

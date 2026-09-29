@@ -10,7 +10,8 @@ comparação por campo/sítio com um 2º .mudmap), volta ao Inspetor (recalcula 
 versão e exportar p/ um estado/ falso.
 Capturas PNG em <saida> (default: pasta temporária impressa no fim).
 
-Uso (raiz do projeto):  python app/testes/testar_interface.py [pasta_saida]
+Uso (raiz do repositório):  python app/testes/testar_interface.py [pasta_saida] [--raiz <pasta_do_projeto>]
+  --raiz: default = a raiz do repositório; ex.: exemplo (python scripts/gerar_exemplo.py)
 """
 import os
 import shutil
@@ -22,10 +23,17 @@ from pathlib import Path
 
 warnings.filterwarnings("ignore")
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
-os.environ["QT_QPA_FONTDIR"] = "C:/Windows/Fonts"          # offscreen não acha fontes sozinho
-RAIZ = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(RAIZ / "app"))
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.mkdtemp(prefix="mudmap_ui_"))
+if sys.platform == "win32":
+    os.environ["QT_QPA_FONTDIR"] = "C:/Windows/Fonts"      # offscreen não acha fontes sozinho no Windows
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / "app"))
+_args = sys.argv[1:]
+RAIZ = REPO
+if "--raiz" in _args:
+    i = _args.index("--raiz")
+    RAIZ = Path(_args[i + 1]).resolve()
+    del _args[i:i + 2]
+OUT = Path(_args[0]) if _args else Path(tempfile.mkdtemp(prefix="mudmap_ui_"))
 OUT.mkdir(parents=True, exist_ok=True)
 
 import numpy as np  # noqa: E402

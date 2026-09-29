@@ -42,8 +42,9 @@ def main():
     prev_png = Path("saida") / prev_rel
 
     if not args.sem_regenerar:
-        subprocess.run([py, "scripts/mapa_atual.py", "--saida", prev_rel], check=True)
-        subprocess.run([py, "scripts/exportar_graos.py"], check=True)
+        aqui = Path(__file__).resolve().parent            # funciona rodando de qualquer raiz de projeto
+        subprocess.run([py, str(aqui / "mapa_atual.py"), "--saida", prev_rel, "--config", args.config], check=True)
+        subprocess.run([py, str(aqui / "exportar_graos.py"), "--config", args.config], check=True)
     elif Path("saida/previa_atual.png").exists():
         shutil.copy2("saida/previa_atual.png", prev_png)
 
