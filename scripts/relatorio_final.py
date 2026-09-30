@@ -1,6 +1,6 @@
 """Relatório final — estatística + triângulo ternário granulométrico (Shepard).
 
-Decisões do usuário (ver "Decisões já tomadas" em .claude/skills/mudmap/SKILL.md):
+Decisões do usuário (ver "Decisões duráveis" no runbook /S_MudMap, .claude/skills/S_MudMap/SKILL.md):
 - Ternário GRANULOMÉTRICO por tamanho de grão medido (Wentworth), por ÁREA:
   argila <3,9 µm, silte 3,9–62,5 µm, areia ≥62,5 µm.
 - Grãos = componentes conexos POR MINERAL em rotulos.npy com área ≥ area_min (os menores são
