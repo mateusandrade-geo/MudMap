@@ -127,6 +127,37 @@ a data, contra o que foi calibrado e a métrica (como os blocos existentes fazem
   em `sitios/<antigo>/estado/`); (5) recomece pela seção 1. As regras são mantidas: reavalie cada
   mineral com prévias e, se preciso, recalibre (seção 3).
 
+## Decisões já tomadas (amostra RJS0649RJ)
+
+Reunidas dos comentários da config e do código (o runbook original do projeto não está no
+repositório). Não as reverta sem o usuário pedir; decisões novas vão no comentário do bloco do
+mineral na config, com data.
+
+- **Backup antes de gravar** (a "regra 8" do runbook): todo passo que altera `estado/rotulos.npy`
+  guarda antes `estado/rotulos_prev.npy`.
+- **Cátions:** O e C nunca entram. Na entra na fração de cátions (decisão do operador, sítio 1.1: o
+  grande sem_classe rico em Na é resina + minerais não identificáveis). No 1.2 o Na fica **fora**
+  (o Na.tif do 1.2 era cópia do 1.1; o mapa real não existe), e o sub-modelo sódico do feldspato
+  perdeu o critério de Na.
+- **Desenho do operador × modelo:** para quartzo (2026-09-19) e biotita (2026-09-18), `rotulos.npy`
+  guarda o DESENHO do operador (maior fidelidade) e a regra da config é o modelo REPRODUZÍVEL
+  (IoU/Dice registrados no comentário). Não sobrescreva esses rótulos com o candidato sem pedir.
+- **Pirita** (2026-09-19): o GRÃO INTEIRO (footprint sólido do sinal Fe∩S, maior componente com
+  buracos preenchidos), não o núcleo apertado.
+- **Sulfato de Ca** (2026-09-16): cimento DISSEMINADO (`disseminado: true`, sem limpeza por área);
+  grão × cimento é separado só no relatório (≥ `area_min` = grão).
+- **Óxidos de Fe e Ti** (2026-09-16): regra pela FRAÇÃO (o mapa bruto inunda de ruído) + resgate
+  por Fe/Ti na máscara da amostra (TiO2 e óxido de Fe fino têm soma de cátions baixa).
+- **Biotita × clorita** (2026-09-19): mesma família de regra (mapas brutos suavizados), a fronteira
+  é o Mg (biotita alto, clorita baixo) com Si alto na clorita; juntas particionam a matriz.
+- **Matriz na argila** (2026-09-28): minerais `matriz: true` não são grãos; a área inteira entra na
+  argila do ternário.
+- **Tamanhos em µm** (2026-09-28): `d_min_um`, `suavizar_um`, `forma.close_um/d_min_um`, convertidos
+  pelo pixel do sítio (1.1 = 0,1089 µm/px; 1.2 = 0,0544 µm/px, zoom 2×).
+- **Relatório:** ternário GRANULOMÉTRICO por tamanho medido (Wentworth, diâmetro equivalente,
+  frações por área); grãos = componentes conexos por mineral de `rotulos.npy` com área ≥
+  `area_min`; FOV de ~111 µm (1.1) / ~56 µm (1.2) trunca grãos de areia (ok para lamito).
+
 ## Convenções
 
 - Coordenadas **(row, col)** = (y, x), como no napari e no scipy.

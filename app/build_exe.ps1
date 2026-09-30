@@ -24,10 +24,14 @@ Write-Output "Python: $Python"
 if ($LASTEXITCODE -ne 0) { & $Python -m pip install pyinstaller; if ($LASTEXITCODE -ne 0) { throw "pip install pyinstaller falhou" } }
 
 & $Python (Join-Path $app "gerar_icone.py")
+$versao = Join-Path $Saida "build\versao_exe.txt"         # Propriedades -> Detalhes do .exe
+& $Python (Join-Path $app "versao_exe.py") $versao
+if ($LASTEXITCODE -ne 0) { throw "versao_exe.py falhou" }
 # caminhos ABSOLUTOS: com --specpath, relativos seriam resolvidos a partir da pasta do spec
 & $Python -m PyInstaller --noconfirm --clean --windowed `
     --name MudMapStudio `
     --icon (Join-Path $rec "mudmap.ico") `
+    --version-file $versao `
     --paths $app --paths (Join-Path $raiz "scripts") `
     --hidden-import common --hidden-import segmentar `
     --add-data "$rec;mudmap_studio\recursos" `

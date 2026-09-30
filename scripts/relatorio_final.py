@@ -1,16 +1,18 @@
 """Relatório final — estatística + triângulo ternário granulométrico (Shepard).
 
-Decisões do usuário (ver SKILL.md):
-- Ternário GRANULOMÉTRICO por tamanho de grão medido (Wentworth):
+Decisões do usuário (ver "Decisões já tomadas" em .claude/skills/mudmap/SKILL.md):
+- Ternário GRANULOMÉTRICO por tamanho de grão medido (Wentworth), por ÁREA:
   argila <3,9 µm, silte 3,9–62,5 µm, areia ≥62,5 µm.
-- Escopo = TODOS os objetos: segmenta grãos de toda a amostra a partir da BSE
-  (Electron Image), não só os pixels já classificados. Colore cada grão pelo
-  mineral dominante em rotulos.npy (sem classe = "não classificado").
-- Ressalva de escala: FOV ~111 µm; grão de areia (>574 px) não cabe inteiro →
+- Grãos = componentes conexos POR MINERAL em rotulos.npy com área ≥ area_min (os menores são
+  cimento/finos, fora do ternário). Minerais `matriz: true` não são grãos: a área inteira entra na
+  argila (decisão 2026-09-28).
+- Ressalva de escala: FOV ~111 µm (1.1) / ~56 µm (1.2); grão de areia não cabe inteiro →
   fração "areia" truncada. OK p/ amostra de lama (silte+argila).
 
-Protótipo: valida a segmentação de grãos (watershed na BSE) e desenha o painel.
-Uso: PYTHONPATH=scripts python scripts/relatorio_final.py --previa [--sigma 1.0 --h 0.02]
+Gera o painel (máscara e grãos sobre a BSE, ternário de Shepard, tamanho ponderado por área com
+D50, composição média e nº de grãos por mineral, Na-K-Ca do feldspato) em
+saida/relatorio_final_previa.png e os números em saida/relatorio_final.json.
+Uso: python scripts/relatorio_final.py --previa [--estado sitios/<s>/estado] [--abertura 0]
 """
 import argparse
 import json

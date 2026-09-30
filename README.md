@@ -36,8 +36,9 @@ O objetivo é desenvolver, portanto, uma ferramenta capaz de automatizar e torna
    pacotes reais (`RJS0649RJ_1.1.mudmap`, `RJS0649RJ_1.2.mudmap`, também no Release e em `amostras/`),
    ou **Importar pasta do projeto** apontando para a pasta deste repositório (lê os mapas do AZtec direto).
 
-> O Windows pode avisar que o app não é assinado ("O Windows protegeu o computador"):
-> clique em **Mais informações → Executar assim mesmo**.
+> Enquanto o executável não for assinado digitalmente (ver [Assinatura](#assinatura-do-executável)),
+> o Windows pode avisar "O Windows protegeu o computador": clique em **Mais informações → Executar
+> assim mesmo**.
 
 ### 2. Pelo código-fonte (Windows, Linux ou macOS)
 
@@ -127,4 +128,22 @@ powershell -ExecutionPolicy Bypass -File app\build_exe.ps1 -Saida C:\MudMapStudi
 
 A cada push o GitHub Actions ([`.github/workflows/mudmap.yml`](.github/workflows/mudmap.yml)) roda os
 testes (dados reais + exemplo), gera o `.exe`, valida-o com `--autoteste` e monta o `MudMap-skill.zip`.
-Ao criar uma tag `v*` (ex.: `v0.5.0`), publica tudo num Release.
+Ao criar uma tag `v*` (ex.: `v0.5.0`), publica tudo num Release. A versão do app fica em
+`app/mudmap_studio/__init__.py` (`__version__`) e aparece em Propriedades → Detalhes do `.exe`.
+
+### Assinatura do executável
+
+O aviso do Windows SmartScreen só some com o `.exe` **assinado** por um certificado de assinatura de
+código (e, com certificados comuns, depois de o arquivo ganhar reputação com os downloads). A CI já
+assina sozinha quando o certificado estiver cadastrado — basta:
+
+1. Obter um certificado de assinatura de código (arquivo `.pfx` + senha). Caminhos comuns:
+   [SignPath Foundation](https://signpath.org) (gratuito para projetos de código aberto; exige uma
+   licença aprovada pela OSI no repositório), [Azure Trusted Signing](https://learn.microsoft.com/azure/trusted-signing/)
+   (assinatura mensal) ou um certificado OV/EV comprado de uma autoridade certificadora.
+2. Em **Settings → Secrets and variables → Actions** do repositório, criar os secrets
+   `WINDOWS_CERT_PFX_BASE64` (o `.pfx` em base64: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("cert.pfx"))`
+   no PowerShell) e `WINDOWS_CERT_SENHA`.
+3. Rodar a CI de novo (ou criar a próxima tag): o passo "Assinar o executável" usa o `signtool` com
+   carimbo de tempo e confere a assinatura. SignPath e Azure usam ações próprias em vez do `.pfx`;
+   nesse caso o passo precisa ser trocado pela ação do serviço escolhido.

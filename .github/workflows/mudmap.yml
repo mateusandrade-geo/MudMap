@@ -74,8 +74,7 @@ jobs:
           cd "$RUNNER_TEMP/copia"
           python scripts/ativar_sitio.py 1.1
           python scripts/ativar_sitio.py --listar
-          python scripts/reconhecer.py
-          python app/testes/validar_nucleo.py
+          python app/testes/validar_nucleo.py         # inclui k-means = sitios/1.1/estado/clusters.npy
 
       - uses: actions/upload-artifact@v4
         if: always() && matrix.python == '3.12'
@@ -90,6 +89,9 @@ jobs:
     name: Executável Windows
     runs-on: windows-latest
     timeout-minutes: 40
+    env:
+      # assinatura só acontece se o certificado estiver nos secrets do repositório (ver README)
+      TEM_CERTIFICADO: ${{ secrets.WINDOWS_CERT_PFX_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -100,7 +102,30 @@ jobs:
         run: pip install -r requirements.txt pyinstaller
       - name: Gerar o executável
         shell: pwsh
-        run: ./app/build_exe.ps1 -Python (Get-Command python).Source -Saida "$env:RUNNER_TEMP\mudmap" -Zip
+        run: ./app/build_exe.ps1 -Python (Get-Command python).Source -Saida "$env:RUNNER_TEMP\mudmap"
+      - name: Assinar o executável (só com certificado nos secrets)
+        if: env.TEM_CERTIFICADO == 'true'
+        shell: pwsh
+        env:
+          CERT_PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          CERT_SENHA: ${{ secrets.WINDOWS_CERT_SENHA }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP "certificado.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:CERT_PFX_BASE64))
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" |
+              Sort-Object FullName -Descending | Select-Object -First 1
+          $exe = "$env:RUNNER_TEMP\mudmap\dist\MudMapStudio\MudMapStudio.exe"
+          & $signtool.FullName sign /f $pfx /p $env:CERT_SENHA /fd sha256 /tr http://timestamp.digicert.com /td sha256 $exe
+          $st = $LASTEXITCODE
+          Remove-Item $pfx
+          if ($st -ne 0) { throw "signtool falhou ($st)" }
+          & $signtool.FullName verify /pa $exe
+      - name: Compactar (MudMapStudio-windows.zip)
+        shell: pwsh
+        run: Compress-Archive -Path "$env:RUNNER_TEMP\mudmap\dist\MudMapStudio" -DestinationPath "$env:RUNNER_TEMP\mudmap\MudMapStudio-windows.zip"
+      - name: Propriedades do .exe
+        shell: pwsh
+        run: (Get-Item "$env:RUNNER_TEMP\mudmap\dist\MudMapStudio\MudMapStudio.exe").VersionInfo | Format-List ProductName, FileDescription, FileVersion, ProductVersion
       - name: Autoteste do executável (abre o .mudmap, edita, segmenta, relatório, exemplo, importa os TIFFs)
         shell: pwsh
         run: |
@@ -137,7 +162,7 @@ jobs:
           mkdir -p pacote/mudmap
           cp .claude/skills/mudmap/SKILL.md CLAUDE.md README.md requirements.txt requirements-napari.txt pacote/mudmap/
           cp -r scripts app config pacote/mudmap/
-          rm -rf pacote/mudmap/app/testes pacote/mudmap/app/build_exe.ps1
+          rm -rf pacote/mudmap/app/testes pacote/mudmap/app/build_exe.ps1 pacote/mudmap/app/versao_exe.py
           (cd pacote && zip -qr ../MudMap-skill.zip mudmap)
           unzip -l MudMap-skill.zip | tail -1
       - uses: actions/upload-artifact@v4
