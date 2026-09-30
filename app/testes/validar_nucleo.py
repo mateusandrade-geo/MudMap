@@ -215,7 +215,7 @@ with tempfile.TemporaryDirectory() as d:
            int((idm[..., 0].astype(int) + 256 * idm[..., 1].astype(int)).max()) == min(ob.n, 65535),
            f"inspetor HTML único ({len(html) / 1e6:.1f} MB, {dd['meta']['n_obj']} objetos)")
 # Na-K-Ca num pacote com Na e feldspato (o sítio ativo pode não ter): mesmas entradas nos dois lados
-for arq in sorted([*(RAIZ / "saida" / "mudmap").glob("*.mudmap"), *(RAIZ / "amostras").glob("*.mudmap")]):
+for arq in sorted((RAIZ / "saida" / "mudmap").glob("*.mudmap")):
     b = pacote.abrir(arq)
     if not (b.tem_na and b.id_feldspato and (b.rotulos == b.id_feldspato).any()):
         continue

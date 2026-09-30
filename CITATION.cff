@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "Se usar o MudMap (software ou dados da amostra RJS0649RJ), cite-o assim."
+title: "MudMap: segmentação mineral determinística de mapas MEV-EDS e MudMap Studio"
+type: software
+authors:
+  - given-names: Mateus
+    family-names: Andrade
+  - given-names: Lorran
+    family-names: Faria do Nascimento
+version: 0.5.0
+license: MIT
+repository-code: "https://github.com/mateusandrade-geo/MudMap"
+abstract: >-
+  Pipeline determinístico (regras estequiométricas sobre frações de cátion e k-means) para segmentar e
+  classificar minerais em mapas EDS de rochas sedimentares, e o MudMap Studio, aplicativo desktop para
+  inspecionar, editar, segmentar e gerar o relatório granulométrico (Shepard/Wentworth) e o ternário
+  Na-K-Ca de feldspatos. Os dados da amostra RJS0649RJ que acompanham o repositório estão sob CC BY 4.0
+  (ver LICENSE-DADOS.md).
+keywords:
+  - EDS
+  - MEV
+  - SEM-EDS
+  - mineralogia
+  - segmentação
+  - rochas sedimentares
+  - lamito

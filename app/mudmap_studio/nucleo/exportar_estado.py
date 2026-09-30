@@ -1,5 +1,5 @@
 """Exporta os rótulos editados de volta ao pipeline (estado/rotulos.npy), como o napari fazia:
-backup do atual em rotulos_prev.npy (regra 8 do runbook) e progresso.json atualizado para os
+backup do atual em rotulos_prev.npy (regra 7 "Backup/desfazer" do runbook /S_MudMap) e progresso.json atualizado para os
 minerais cuja contagem mudou (metodo = "mudmap_studio")."""
 import json
 from datetime import date

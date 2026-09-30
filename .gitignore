@@ -1,22 +1,32 @@
-# Python
+# --- Python / build ---
 __pycache__/
 *.py[cod]
 .venv/
 venv/
-
-# Build do executável (PyInstaller)
+.pytest_cache/
 build/
 dist/
 build_exe/
 *.spec
 
-# Saídas geradas pelos scripts e pelo app (regeneráveis)
-saida/
-exemplo/
+# --- Saídas regeneráveis pelos scripts (prévias, inspetores, grãos) ---
+# Ficam no git só os pacotes .mudmap (um por sítio, regravados pelo exportar_mudmap.py)
+# e os relatórios finais dos sítios concluídos.
+saida/*
+!saida/mudmap/
+!saida/relatorio_final_1.*
 *.mudmap.tmp
 *.bak_*
 
-# Sistema
+# --- Projeto de exemplo sintético (python scripts/gerar_exemplo.py) ---
+exemplo/
+
+# --- Mapas brutos dos sítios 2–4 (1,1 GB; ainda não organizados em EDS/<n>/<n.k>/) ---
+EDS/2/
+EDS/3/
+EDS/4/
+
+# --- Sistema ---
 .DS_Store
 Thumbs.db
 desktop.ini

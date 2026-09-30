@@ -21,7 +21,7 @@ New-Item -ItemType Directory -Force $Saida | Out-Null
 Write-Output "Python: $Python"
 # (sem redirecionar stderr: no Windows PowerShell 5.1 isso vira erro com ErrorActionPreference=Stop)
 & $Python -c "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('PyInstaller') else 1)"
-if ($LASTEXITCODE -ne 0) { & $Python -m pip install pyinstaller; if ($LASTEXITCODE -ne 0) { throw "pip install pyinstaller falhou" } }
+if ($LASTEXITCODE -ne 0) { & $Python -m pip install pyinstaller==6.22.3; if ($LASTEXITCODE -ne 0) { throw "pip install pyinstaller falhou" } }
 
 & $Python (Join-Path $app "gerar_icone.py")
 $versao = Join-Path $Saida "build\versao_exe.txt"         # Propriedades -> Detalhes do .exe

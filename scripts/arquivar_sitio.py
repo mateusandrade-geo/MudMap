@@ -7,7 +7,7 @@ Regenera e copia, por sítio, para:
   - sitios/<sitio>/info.json                  (sitio, pasta_dados, data, contagem por mineral, url do inspetor)
 
 Rode ANTES de trocar de amostra: garante que o sítio atual fica 100% recuperável
-(o estado/ é sobrescrito ao começar outro sítio). Ver "Trocar de sítio" no SKILL.md.
+(o estado/ é sobrescrito ao começar outro sítio). Ver "Multi-sítio" no runbook /S_MudMap.
 
 Uso: PYTHONPATH=scripts python scripts/arquivar_sitio.py [--url <artifact_url>]
 """
