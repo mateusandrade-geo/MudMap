@@ -81,6 +81,12 @@ class BoasVindas(QWidget):
             b.setCursor(Qt.CursorShape.PointingHandCursor)
             bl.addWidget(b)
         c.addLayout(bl)
+        b3 = QPushButton("Primeira vez? Abrir o exemplo sintético")
+        b3.setToolTip("Gera (uma vez) um projeto de demonstração com mapas EDS sintéticos e o importa")
+        b3.setFlat(True)
+        b3.setCursor(Qt.CursorShape.PointingHandCursor)
+        b3.clicked.connect(janela.abrir_exemplo)
+        c.addWidget(b3, alignment=Qt.AlignmentFlag.AlignLeft)
         c.addSpacing(10)
         r = QLabel("RECENTES")
         r.setObjectName("secao")
@@ -687,6 +693,25 @@ class JanelaPrincipal(QMainWindow):
                 self, "Importar",
                 "Esta pasta não é de um projeto MudMap (config/classificacao.yaml) nem contém mapas "
                 "elementais (.tif). Escolha a pasta do projeto, uma pasta em sitios/ ou uma pasta EDS.")
+
+    def abrir_exemplo(self):
+        """Projeto de EXEMPLO sintético (nucleo/exemplo.py) gerado na pasta de dados do app na
+        primeira vez e importado como um sítio do projeto (mesmo caminho dos dados reais)."""
+        if self._ocupado or not self._pode_descartar():
+            return
+        from PyQt6.QtCore import QStandardPaths
+
+        from ..nucleo import exemplo
+        base = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation)
+        destino = Path(base or Path.home() / ".mudmap") / "exemplo"
+
+        def trabalho(prog):
+            raiz = exemplo.garantir(destino, _sub(prog, 0, 0.4))
+            fonte = next(f for f in importar.listar_sitios(raiz) if f.ativo)
+            am = importar.importar_sitio(fonte, _sub(prog, 0.4, 0.8))
+            return am, objetos.calcular(am, 3, _sub(prog, 0.8, 1.0))
+        self.cfg.setValue("ultimo_dir", str(destino))
+        self._rodar("Abrindo o exemplo sintético", trabalho, lambda r: self._carregado(r, None))
 
     def salvar(self):
         if self.am is None or self._ocupado:

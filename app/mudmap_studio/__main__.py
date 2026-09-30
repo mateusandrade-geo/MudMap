@@ -1,4 +1,4 @@
-"""Ponto de entrada: python -m mudmap_studio [arquivo.mudmap]"""
+"""Ponto de entrada: python -m mudmap_studio [arquivo.mudmap | --exemplo]"""
 import sys
 from pathlib import Path
 
@@ -121,6 +121,12 @@ def autoteste(jan, app, arquivo, saida, raiz_projeto=None):
         log.append(f"relatório: {R.resumo['n_graos']} grãos · {R.resumo['fracoes_area']} · Shepard "
                    f"{R.resumo['classe_shepard']} · exportou png/svg/json/csv/html · comparação por sítio "
                    f"(2 campos) OK · {time.time() - t:.2f}s")
+        t = time.time()                          # exemplo sintético (config embutida nos recursos do .exe)
+        from .nucleo import exemplo
+        with tempfile.TemporaryDirectory(prefix="mudmap_exemplo_") as d:
+            rx = exemplo.gerar_projeto(Path(d) / "exemplo", tamanho=320)
+            obx = objetos.calcular(importar.importar_sitio(next(x for x in importar.listar_sitios(rx) if x.ativo)), 3)
+        log.append(f"exemplo sintético (gerar + importar) OK {time.time() - t:.2f}s  n={obx.n}")
         if raiz_projeto:
             t = time.time()
             f = next(x for x in importar.listar_sitios(raiz_projeto) if x.ativo)
@@ -163,6 +169,8 @@ def main(argv=None):
     arquivos = [a for a in argv[1:] if a.lower().endswith(".mudmap") and Path(a).exists()]
     if arquivos:
         jan.abrir_arquivo(arquivos[0])
+    elif "--exemplo" in argv:
+        jan.abrir_exemplo()
     return app.exec()
 
 

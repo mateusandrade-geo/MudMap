@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build do executável (PyInstaller)
+build/
+dist/
+build_exe/
+*.spec
+
+# Saídas geradas pelos scripts e pelo app (regeneráveis)
+saida/
+exemplo/
+*.mudmap.tmp
+*.bak_*
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini

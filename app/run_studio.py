@@ -1,5 +1,5 @@
 """Ponto de entrada do executável (PyInstaller) e atalho para rodar do código-fonte:
-    python app/run_studio.py [arquivo.mudmap]
+    python app/run_studio.py [arquivo.mudmap | --exemplo]
 """
 import sys
 from pathlib import Path

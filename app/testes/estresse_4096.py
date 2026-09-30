@@ -3,7 +3,7 @@
 Referência (2026-09-25, 1.2 ampliado, 111 mil objetos): grãos 5,6 s · prévia 0,15–0,33 s ·
 composição cheia 1,1–2,8 s · canal suavizado 1ª vez ~1,4 s · salvar 1,7 s · abrir 0,4 s.
 
-Uso (raiz do projeto):  python app/testes/estresse_4096.py
+Uso (raiz do repositório):  python app/testes/estresse_4096.py [pasta_do_projeto]
 """
 import sys
 import tempfile
@@ -14,8 +14,9 @@ from pathlib import Path
 import numpy as np
 
 warnings.filterwarnings("ignore")
-RAIZ = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(RAIZ / "app"))
+REPO = Path(__file__).resolve().parents[2]
+RAIZ = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else REPO     # projeto usado
+sys.path.insert(0, str(REPO / "app"))
 from mudmap_studio.nucleo import exportar_html, importar, objetos, pacote, relatorio  # noqa: E402
 from mudmap_studio.nucleo.amostra import Amostra  # noqa: E402
 from mudmap_studio.nucleo.edicao import Editor  # noqa: E402

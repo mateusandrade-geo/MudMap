@@ -68,9 +68,11 @@ def main():
     if args.remover.strip():
         rem = [int(x) for x in args.remover.replace(",", " ").split()]
         alvo = np.isin(lab, rem)
+        np.save(ROT.with_name("rotulos_prev.npy"), rotulos)       # backup de 1 passo (desfazer)
         rotulos[alvo] = 0
         np.save(ROT, rotulos)
-        print(f"Removidos grãos {rem}: {int(alvo.sum())} px -> sem classe. Estado salvo.")
+        print(f"Removidos grãos {rem}: {int(alvo.sum())} px -> sem classe. Estado salvo "
+              f"(backup em estado/rotulos_prev.npy).")
         lab, ids = graos(rotulos, ident, area_min)
         render(SAIDA / f"revisar_{args.mineral}_pos.png", base,
                f"PÓS revisão {args.mineral}", lab, ids)

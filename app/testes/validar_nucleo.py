@@ -10,7 +10,8 @@ Checa (assert) — o que precisa bater exatamente:
   6. .mudmap: salvar/abrir preserva rótulos e guarda a versão anterior
 Informa (sem assert): candidato de cada mineral rotulado × rotulado (IoU/Dice) e tempos.
 
-Uso (raiz do projeto):  python app/testes/validar_nucleo.py
+Uso (raiz do repositório):  python app/testes/validar_nucleo.py [pasta_do_projeto]
+  pasta_do_projeto: default = a raiz do repositório; ex.: exemplo (python scripts/gerar_exemplo.py)
 """
 import copy
 import sys
@@ -23,8 +24,9 @@ import numpy as np
 import yaml
 
 warnings.filterwarnings("ignore")
-RAIZ = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(RAIZ / "app"), str(RAIZ / "scripts")]
+REPO = Path(__file__).resolve().parents[2]
+RAIZ = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else REPO     # projeto validado
+sys.path[:0] = [str(REPO / "app"), str(REPO / "scripts")]
 import common  # noqa: E402
 import segmentar  # noqa: E402
 from mudmap_studio.nucleo import config_texto, importar, objetos, pacote  # noqa: E402
@@ -98,14 +100,14 @@ cfgt = yaml.safe_load(texto)
 ok = True
 for m in cfgt["minerais"]:
     p = {k: m[k] for k in sg.CHAVES_REGRA if k in m}
-    ok &= yaml.safe_load(config_texto.substituir(texto, m["nome"], p)[0]) == cfgt
+    ok &= yaml.safe_load(config_texto.substituir(texto, m["nome"], p, am.pixel_um)[0]) == cfgt
 checar(ok, f"regravar os {len(cfgt['minerais'])} minerais sem mudança = config idêntica")
 m = next((x for x in cfgt["minerais"] if x.get("mapas_grupos")), None)
 if m:
     p = {k: copy.deepcopy(m[k]) for k in sg.CHAVES_REGRA if k in m}
     c0 = p["mapas_grupos"][0]["cond"][0]
     c0["q" if "q" in c0 else "v"] = round(c0.get("q", c0.get("v", 0.5)) + 0.05, 3)
-    novo = config_texto.substituir(texto, m["nome"], p)[0]
+    novo = config_texto.substituir(texto, m["nome"], p, am.pixel_um)[0]
     checar(novo.count("#") == texto.count("#"), f"alterar {m['nome']} preserva os {texto.count('#')} comentários")
 
 print("5. editor: desfazer/refazer")
@@ -213,7 +215,7 @@ with tempfile.TemporaryDirectory() as d:
            int((idm[..., 0].astype(int) + 256 * idm[..., 1].astype(int)).max()) == min(ob.n, 65535),
            f"inspetor HTML único ({len(html) / 1e6:.1f} MB, {dd['meta']['n_obj']} objetos)")
 # Na-K-Ca num pacote com Na e feldspato (o sítio ativo pode não ter): mesmas entradas nos dois lados
-for arq in sorted((RAIZ / "saida" / "mudmap").glob("*.mudmap")):
+for arq in sorted([*(RAIZ / "saida" / "mudmap").glob("*.mudmap"), *(RAIZ / "amostras").glob("*.mudmap")]):
     b = pacote.abrir(arq)
     if not (b.tem_na and b.id_feldspato and (b.rotulos == b.id_feldspato).any()):
         continue

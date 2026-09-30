@@ -8,92 +8,142 @@ A classificação dos minerais será realizada por meio de técnicas de aprendiz
 
 O objetivo é desenvolver, portanto, uma ferramenta capaz de automatizar e tornar mais consistente o processo de interpretação mineralógica de imagens de MEV-EDS, permitindo a geração de mapas mineralógicos quantitativos e a caracterização da distribuição espacial dos minerais em rochas sedimentares.
 
-# Ancoragem de centros na imagem BSE/SE
+![MudMap Studio — modo Inspetor, amostra RJS0649RJ sítio 1.2](docs/studio_inspetor.jpg)
 
-Etapa final de um workflow de segmentação mineral a partir de mapas EDS
-(um mapa em tons de cinza por elemento químico). Depois que a segmentação
-produz um **mapa mestre de rótulos** (`0 = não atribuído`, `1..N = minerais`),
-este script:
+## O que tem aqui
 
-1. separa cada mineral em regiões conectadas (grãos) e calcula o **centroide**
-   de cada grão, de forma determinística;
-2. abre a **imagem de elétrons (BSE ou SE)** do mesmo campo e escala no
-   [napari](https://napari.org) com os centros desenhados e nomeados por cima;
-3. permite **ajustar** os pontos na mão (arrastar, adicionar, remover);
-4. ao fechar a janela, salva os centros validados em `saida/centros_bse.csv`
-   e `saida/centros_bse.json`.
+- **MudMap Studio** (`app/`): aplicativo de desktop para inspecionar, editar, segmentar e gerar o
+  relatório de uma amostra. Modos **Inspetor** (clique num grão → área, diâmetro, composição),
+  **Edição** (pincel, borracha, balde, polígono, laço, pontos → regiões, propagar, desfazer),
+  **Segmentar** (candidato pelas regras da config, comparação IoU/Dice, calibração, k-means) e
+  **Relatório** (Shepard, D50, composição por mineral, ternário Na-K-Ca de feldspatos; PNG/SVG/CSV/JSON/HTML).
+- **Pipeline por linha de comando** (`scripts/`): as mesmas etapas em scripts determinísticos,
+  pensados para serem conduzidos pelo **Claude** numa conversa (ver [SKILL.md](.claude/skills/mudmap/SKILL.md)).
+- **Dados reais**: amostra RJS0649RJ, sítios 1.1 e 1.2 — mapas EDS do AZtec (`EDS/`), estado da
+  segmentação (`estado/`, `sitios/`), regras calibradas (`config/`) e pacotes prontos (`amostras/*.mudmap`).
+- **Exemplo sintético**: um projeto completo gerado por código, para testar tudo sem dados reais.
 
-Esses centros servem como conferência final da segmentação e como alvos para
-análises pontuais quantificadas (que depois alimentam, por exemplo, o diagrama
-ternário de feldspatos Or–Ab–An).
+## Como baixar e usar
 
-## Instalação
+### 1. Só o aplicativo (Windows, sem instalar Python)
+
+1. Baixe **`MudMapStudio-windows.zip`** na página de
+   [Releases](https://github.com/mateusandrade-geo/MudMap/releases/latest)
+   (ou, antes do primeiro release, no artefato da última execução em
+   [Actions](https://github.com/mateusandrade-geo/MudMap/actions) — precisa estar logado no GitHub).
+2. Extraia o ZIP e rode `MudMapStudio\MudMapStudio.exe`.
+3. Na tela inicial: **"Primeira vez? Abrir o exemplo sintético"**, ou **Abrir .mudmap** com um dos
+   pacotes reais (`RJS0649RJ_1.1.mudmap`, `RJS0649RJ_1.2.mudmap`, também no Release e em `amostras/`),
+   ou **Importar pasta do projeto** apontando para a pasta deste repositório (lê os mapas do AZtec direto).
+
+> Enquanto o executável não for assinado digitalmente (ver [Assinatura](#assinatura-do-executável)),
+> o Windows pode avisar "O Windows protegeu o computador": clique em **Mais informações → Executar
+> assim mesmo**.
+
+### 2. Pelo código-fonte (Windows, Linux ou macOS)
+
+Precisa do [Python 3.10 ou mais novo](https://www.python.org/downloads/) — testado no 3.11 e no 3.12 (no Windows, marque *Add python.exe to PATH*).
+
+1. Baixe o repositório: botão **Code → Download ZIP** (ou `git clone https://github.com/mateusandrade-geo/MudMap.git`).
+2. Abra o app:
+   - **Windows:** duplo clique em **`MudMapStudio.bat`**
+   - **Linux/macOS:** `./mudmap_studio.sh` (ou `./mudmap_studio.sh --exemplo`)
+
+   Na primeira vez ele cria o ambiente `.venv` e instala as dependências (alguns minutos, precisa de internet).
+
+Manualmente, se preferir:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+python app/run_studio.py           # ou: python app/run_studio.py amostras/RJS0649RJ_1.1.mudmap
 ```
 
-O napari abre uma janela Qt de verdade, então rode numa máquina **com tela**
-(desktop/notebook). Em servidor remoto sem ambiente gráfico a janela não aparece.
+### 3. Com o Claude
 
-## Uso
+O fluxo de segmentação foi feito para ser conduzido pelo Claude: ele roda os scripts, mostra as
+prévias, resume os números e só grava o que você aprovar. As instruções ficam em
+[`.claude/skills/mudmap/SKILL.md`](.claude/skills/mudmap/SKILL.md).
 
-Ver a interface funcionando sem nenhum dado (gera um exemplo sintético):
+- **Claude Code:** clone o repositório, abra o Claude Code na pasta e peça, por exemplo,
+  *"liste os sítios e segmente o quartzo do sítio ativo"*. O `CLAUDE.md` e a skill são carregados
+  sozinhos.
+- **claude.ai (com execução de código ligada):** envie o **`MudMap-skill.zip`** do
+  [Release](https://github.com/mateusandrade-geo/MudMap/releases/latest) como skill
+  (Configurações → Capacidades → Skills) e anexe seus mapas EDS na conversa. Também dá para baixar só o
+  [SKILL.md](https://raw.githubusercontent.com/mateusandrade-geo/MudMap/main/.claude/skills/mudmap/SKILL.md):
+  ele manda o Claude buscar o código no GitHub.
+
+## Dados e projeto
+
+```
+config/classificacao.yaml   regras dos minerais do sítio ATIVO (ordem = prioridade)
+estado/                     segmentação do sítio ativo: rotulos.npy (0 = livre, 1..N = mineral),
+                            progresso.json, clusters.npy/.json, rotulos_prev.npy (desfazer)
+sitios/<s>/                 sítios arquivados (estado + config + info.json)
+EDS/1/1.1, EDS/1/1.2        mapas do AZtec: "<El> Wt% Map Data N.tif" + "Electron Image N.tif"
+amostras/*.mudmap           um pacote por sítio (abre direto no app)
+```
+
+- Ver/trocar o sítio ativo: `python scripts/ativar_sitio.py --listar` e `python scripts/ativar_sitio.py 1.1`.
+- Dados novos: coloque os TIFFs exportados do AZtec (um por elemento + a Electron Image) em
+  `EDS/<amostra>/<sítio>/` e siga "Novo sítio" no [SKILL.md](.claude/skills/mudmap/SKILL.md).
+  O tamanho do pixel é lido dos metadados do TIFF (`pixel_um: auto`).
+- Exemplo sintético: `python scripts/gerar_exemplo.py` cria `exemplo/` (projeto separado; rode os
+  scripts de dentro dele, `python ../scripts/reconhecer.py`).
+
+## Pipeline por linha de comando
+
+Rode na raiz do projeto. Passo a passo completo e regras de uso no [SKILL.md](.claude/skills/mudmap/SKILL.md).
+
+| Etapa | Script |
+|---|---|
+| Reconhecimento (k-means, sem commitar) | `reconhecer.py`, `candidatos.py` |
+| Segmentar um mineral por vez | `segmentar.py --mineral <m> --previa` / `--auto` |
+| Revisar | `revisar_commit.py`, `remover_objeto.py`, `revisar_pontos.py`, `mapa_atual.py` |
+| Calibrar a regra | `comparar.py --mineral <m> --calibrar` |
+| Resultados | `exportar_graos.py` (inspetor HTML), `relatorio_final.py --previa`, `exportar_mudmap.py` |
+| Sítios | `arquivar_sitio.py`, `ativar_sitio.py` |
+| Editores napari (opcionais) | `segmentar.py` sem `--auto`, `editor_completo.py`, `propagar.py`, `revisar_regioes.py`, `ancorar_centros_bse.py` — `pip install -r requirements-napari.txt` |
+
+A classificação é **determinística**: regras estequiométricas sobre frações de cátion (sem O e C),
+modelos por região e k-means com semente fixa — o mesmo dado gera sempre o mesmo resultado.
+
+![Relatório do sítio 1.1](docs/relatorio_RJS0649RJ_1.1.png)
+
+## Testes e build
 
 ```bash
-python ancorar_centros_bse.py --demo
+python app/testes/validar_nucleo.py                  # núcleo do app × scripts (dados reais do sítio ativo)
+QT_QPA_PLATFORM=offscreen python app/testes/testar_interface.py saida/testes_ui   # interface, sem tela
+python app/run_studio.py --autoteste amostras/RJS0649RJ_1.1.mudmap saida/auto.png .
 ```
 
-Uso real:
+O executável do Windows é gerado por `app/build_exe.ps1` (PyInstaller):
 
-```bash
-python ancorar_centros_bse.py \
-    --rotulos estado/rotulos.npy \
-    --bse data/bse.tif \
-    --nomes estado/progresso.json
+```powershell
+powershell -ExecutionPolicy Bypass -File app\build_exe.ps1 -Saida C:\MudMapStudio -Zip
 ```
 
-Na janela: arraste os pontos que caíram fora do centro do grão, apague os
-espúrios, adicione os que faltaram. **Feche a janela para salvar.**
-Pontos adicionados por você entram com o nome `?` — renomeie no CSV depois,
-ou ajuste o mineral atual pelo painel de *features* do napari antes de adicionar.
+A cada push o GitHub Actions ([`.github/workflows/mudmap.yml`](.github/workflows/mudmap.yml)) roda os
+testes (dados reais + exemplo), gera o `.exe`, valida-o com `--autoteste` e monta o `MudMap-skill.zip`.
+Ao criar uma tag `v*` (ex.: `v0.5.0`), publica tudo num Release. A versão do app fica em
+`app/mudmap_studio/__init__.py` (`__version__`) e aparece em Propriedades → Detalhes do `.exe`.
 
-### Entradas
+### Assinatura do executável
 
-| Argumento    | Padrão                   | Descrição |
-|--------------|--------------------------|-----------|
-| `--rotulos`  | `estado/rotulos.npy`     | mapa de rótulos 2D inteiro (`.npy`, `.tif` ou `.png`) |
-| `--bse`      | `data/bse.tif`           | imagem BSE/SE do mesmo campo (grayscale ou RGB) |
-| `--nomes`    | `estado/progresso.json`  | (opcional) mapeia id → nome do mineral |
-| `--afim`     | —                        | (opcional) matriz afim 3×3 (row,col) EDS→BSE, em JSON |
-| `--area-min` | `20`                     | área mínima do grão em pixels do EDS |
-| `--size`     | `14`                     | tamanho do marcador |
-| `--saida`    | `saida`                  | pasta de saída |
+O aviso do Windows SmartScreen só some com o `.exe` **assinado** por um certificado de assinatura de
+código (e, com certificados comuns, depois de o arquivo ganhar reputação com os downloads). A CI já
+assina sozinha quando o certificado estiver cadastrado — basta:
 
-O `--nomes` aceita dois formatos:
-
-```json
-{ "1": "quartzo", "2": "clorita", "3": "biotita" }
-```
-
-```json
-[ { "id": 1, "mineral": "quartzo" }, { "id": 2, "mineral": "clorita" } ]
-```
-
-## Alinhamento BSE × EDS (leia isto)
-
-O reposicionamento por **fator de escala** só é válido se a BSE e os mapas EDS
-cobrem exatamente o mesmo campo de visão, mudando apenas o número de pixels.
-Se houver deslocamento, zoom ou rotação entre as imagens, os pontos cairão no
-lugar errado. O script **avisa** quando a razão de aspecto das duas imagens não
-bate. Nesse caso, meça uma transformação afim (3–4 feições reconhecíveis nas
-duas imagens) e passe-a em JSON via `--afim`. Confira na primeira vez alternando
-a opacidade da camada BSE e vendo se os centros pousam no meio dos grãos.
-
-## Saída
-
-`saida/centros_bse.csv` (e `.json`) com colunas:
-`ponto_id, mineral, row_bse, col_bse, x_bse, y_bse, row_eds, col_eds`
-— coordenadas nos dois sistemas (pixel da BSE e pixel do EDS).
+1. Obter um certificado de assinatura de código (arquivo `.pfx` + senha). Caminhos comuns:
+   [SignPath Foundation](https://signpath.org) (gratuito para projetos de código aberto; exige uma
+   licença aprovada pela OSI no repositório), [Azure Trusted Signing](https://learn.microsoft.com/azure/trusted-signing/)
+   (assinatura mensal) ou um certificado OV/EV comprado de uma autoridade certificadora.
+2. Em **Settings → Secrets and variables → Actions** do repositório, criar os secrets
+   `WINDOWS_CERT_PFX_BASE64` (o `.pfx` em base64: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("cert.pfx"))`
+   no PowerShell) e `WINDOWS_CERT_SENHA`.
+3. Rodar a CI de novo (ou criar a próxima tag): o passo "Assinar o executável" usa o `signtool` com
+   carimbo de tempo e confere a assinatura. SignPath e Azure usam ações próprias em vez do `.pfx`;
+   nesse caso o passo precisa ser trocado pela ação do serviço escolhido.
