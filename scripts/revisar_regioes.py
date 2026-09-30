@@ -92,7 +92,7 @@ def main():
     novo[livre_pir] = id_re
     pir_px = int((novo == id_re).sum())
 
-    np.save(EST / "rotulos_prev.npy", rot)                 # backup (rule 8)
+    np.save(EST / "rotulos_prev.npy", rot)                 # backup (regra 7 do /S_MudMap)
     np.save(ROT, novo)
     prog = json.loads(PROG.read_text(encoding="utf-8")) if PROG.exists() else []
     prog = [p for p in prog if p.get("id") not in (id_alvo, id_re)]

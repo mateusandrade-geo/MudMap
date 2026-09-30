@@ -41,7 +41,7 @@ jobs:
       - name: Autoteste do app (dados reais)
         run: |
           st=0
-          python app/run_studio.py --autoteste amostras/RJS0649RJ_1.1.mudmap saida/ci/autoteste.png . || st=$?
+          python app/run_studio.py --autoteste saida/mudmap/RJS0649RJ_1.1.mudmap saida/ci/autoteste.png . || st=$?
           cat saida/ci/autoteste.png.log
           exit $st
 
@@ -132,7 +132,7 @@ jobs:
           $exe = "$env:RUNNER_TEMP\mudmap\dist\MudMapStudio\MudMapStudio.exe"
           $png = "$env:RUNNER_TEMP\autoteste\autoteste.png"
           New-Item -ItemType Directory -Force (Split-Path $png) | Out-Null
-          $argumentos = @('--autoteste', "`"$PWD\amostras\RJS0649RJ_1.1.mudmap`"", "`"$png`"", "`"$PWD`"")
+          $argumentos = @('--autoteste', "`"$PWD\saida\mudmap\RJS0649RJ_1.1.mudmap`"", "`"$png`"", "`"$PWD`"")
           $p = Start-Process -FilePath $exe -ArgumentList $argumentos -Wait -PassThru
           Get-Content "$png.log"
           if ($p.ExitCode -ne 0) { throw "autoteste do .exe falhou (código $($p.ExitCode))" }
@@ -195,4 +195,4 @@ jobs:
           files: |
             dist/MudMapStudio-windows.zip
             dist/MudMap-skill.zip
-            amostras/*.mudmap
+            saida/mudmap/*.mudmap

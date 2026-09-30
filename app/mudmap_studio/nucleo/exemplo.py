@@ -83,6 +83,8 @@ def _colocar(fase_map, livre_de, forma, rng, codigo, tentativas=300):
     """Põe `forma` num lugar em que só há fases de `livre_de` (sem sobrepor outros grãos)."""
     H, W = fase_map.shape
     h, w = forma.shape
+    if h >= H or w >= W:                       # campo pequeno (--tamanho baixo): o grão não cabe
+        return False
     for _ in range(tentativas):
         y, x = int(rng.integers(0, H - h)), int(rng.integers(0, W - w))
         janela = fase_map[y:y + h, x:x + w]

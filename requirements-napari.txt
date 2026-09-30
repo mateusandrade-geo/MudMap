@@ -1,8 +1,7 @@
-# OPCIONAL — só para as janelas napari antigas dos scripts (segmentar.py sem --auto/--previa,
-# editor_completo.py, propagar.py, revisar_regioes.py) e para scripts/ancorar_centros_bse.py.
+# OPCIONAL — janelas napari antigas dos scripts (segmentar.py sem --auto/--previa, editor_completo.py,
+# propagar.py sem --previa, revisar_regioes.py) e scripts/ancorar_centros_bse.py.
 # O MudMap Studio substitui essas janelas; o fluxo com o Claude não precisa do napari.
 #   pip install -r requirements-napari.txt
 -r requirements.txt
-napari[all]>=0.5
-imageio>=2.31
-tifffile>=2023.7.10
+napari[all]==0.9.1
+imageio>=2.31        # ancorar_centros_bse.py: rótulos em .tif/.png

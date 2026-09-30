@@ -1,0 +1,5 @@
+# Desenvolvimento: testes (pytest) e geração do .exe (PyInstaller).
+#   pip install -r requirements-dev.txt
+-r requirements.txt
+pytest>=8
+pyinstaller==6.22.3  # app/build_exe.ps1 (Windows)

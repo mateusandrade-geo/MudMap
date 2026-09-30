@@ -1,11 +1,7 @@
-# MudMap — app (MudMap Studio) + scripts do pipeline. Python 3.10 ou mais novo.
+# MudMap — app (MudMap Studio) + pipeline (scripts/). Python 3.12 ou mais novo.
+# Versões exatas do ambiente onde tudo foi testado (original: Python 3.12.10, Windows 10): o k-means e as
+# regras só são bit a bit idênticos entre máquinas com as mesmas versões.
 #   pip install -r requirements.txt
-numpy>=1.24
-scipy>=1.10
-scikit-image>=0.21
-scikit-learn>=1.3
-PyYAML>=6.0
-Pillow>=10.0
-PyQt6>=6.5
-matplotlib>=3.7       # prévias PNG dos scripts
-pandas>=2.0           # tabela do reconhecer.py
+-r requirements-scripts.txt
+PyQt6==6.11.0
+PyQt6-Qt6==6.11.2

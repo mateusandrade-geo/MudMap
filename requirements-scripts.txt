@@ -1,0 +1,12 @@
+# MudMap — só o PIPELINE (scripts/), sem o app: fluxo conduzido pelo Claude, servidor, claude.ai.
+# Versões exatas do ambiente onde tudo foi testado (original: Python 3.12.10, Windows 10).
+# Python 3.12 ou mais novo (3.12 e 3.13 testados na CI; o 3.11 não tem essas versões).
+#   pip install -r requirements-scripts.txt
+numpy==2.5.3
+scipy==1.18.1
+scikit-image==0.26.0
+scikit-learn==1.9.1
+pillow==12.3.0
+PyYAML==6.0.3
+matplotlib==3.11.2  # prévias e relatório dos scripts (o app não usa)
+pandas==3.0.5       # scripts/reconhecer.py

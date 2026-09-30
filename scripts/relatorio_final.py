@@ -191,6 +191,9 @@ def desenhar_ternario_fsp(ax, pts):
     ax.set_title(f"Feldspato — ternário Na-K-Ca\n(por objeto, n={len(pts)})", fontsize=11)
 
 
+DEFAULT_SAIDA = "saida/relatorio_final_previa.png"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default="config/classificacao.yaml")
@@ -199,7 +202,8 @@ def main():
     ap.add_argument("--previa", action="store_true")
     ap.add_argument("--estado", default="estado",
                     help="pasta com rotulos.npy (sítio arquivado: sitios/<s>/estado)")
-    ap.add_argument("--saida", default="saida/relatorio_final_previa.png")
+    ap.add_argument("--saida", default=DEFAULT_SAIDA,
+                    help="PNG do painel; se diferente do padrão, o JSON é gravado também com o mesmo nome")
     args = ap.parse_args()
 
     cfg = common.carregar_config(args.config)
@@ -276,9 +280,12 @@ def main():
                       "argila_medida": bool(2 * np.sqrt(area_min / np.pi) * px < LIM_ARGILA)},
     }
     Path("saida").mkdir(exist_ok=True)
-    Path("saida/relatorio_final.json").write_text(
-        json.dumps(resumo, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps(resumo, ensure_ascii=False, indent=2))
+    txt = json.dumps(resumo, ensure_ascii=False, indent=2)
+    Path("saida/relatorio_final.json").write_text(txt, encoding="utf-8")
+    if args.saida != DEFAULT_SAIDA:                 # --saida saida/relatorio_final_<s>.png -> .json ao lado
+        Path(args.saida).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.saida).with_suffix(".json").write_text(txt, encoding="utf-8")
+    print(txt)
 
     if not args.previa:
         return
